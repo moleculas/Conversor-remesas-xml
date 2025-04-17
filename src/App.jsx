@@ -2,31 +2,69 @@ import { useState } from 'react';
 import FileUploader from './components/FileUploader';
 import XmlPreview from './components/XmlPreview';
 import ProcessingResult from './components/ProcessingResult';
+import { useRemesa } from './context/RemesaContext';
+import toast from 'react-hot-toast';
 
 function App() {
   const [xmlFile, setXmlFile] = useState(null);
   const [xmlContent, setXmlContent] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [convertedData, setConvertedData] = useState(null);
+  const [isFileValid, setIsFileValid] = useState(true);
+
+  const { numRemesa, setRemesaFromFileName } = useRemesa();
 
   const handleFileUpload = (file, content) => {
+    const extractedNumRemesa = setRemesaFromFileName(file.name);
+
+    if (!extractedNumRemesa) {
+      toast.error("Error: El formato del archivo debe ser 'Remesa_R000000.xml'", {
+        duration: 4000,
+        style: {
+          border: '1px solid #e53e3e',
+          padding: '16px',
+        },
+      });
+
+      setIsFileValid(false);
+      setXmlFile(file);
+      setXmlContent(null);
+      setConvertedData(null);
+      return;
+    }
+
+    setIsFileValid(true);
     setXmlFile(file);
     setXmlContent(content);
     setConvertedData(null);
+
+    toast.success(`Número de remesa detectado: ${extractedNumRemesa}`, {
+      duration: 3000,
+      style: {
+        border: '1px solid #3182ce',
+        padding: '16px',
+      },
+    });
   };
 
   const processXML = () => {
-    if (!xmlContent) return;
+    if (!xmlContent || !numRemesa) return;
 
     setIsProcessing(true);
 
-    // Procesamiento simulado
     setTimeout(() => {
       setConvertedData({
-        message: 'XML procesado correctamente',
-        sample: xmlContent // Mostramos el XML completo, no truncado
+        sample: xmlContent
       });
       setIsProcessing(false);
+
+      toast.success(`XML procesado correctamente. Número de remesa: ${numRemesa}`, {
+        duration: 3000,
+        style: {
+          border: '1px solid #3182ce',
+          padding: '16px',
+        },
+      });
     }, 1000);
   };
 
@@ -43,12 +81,11 @@ function App() {
         </header>
 
         {/* Componente para cargar archivos */}
-        <FileUploader onFileUpload={handleFileUpload} />
+        <FileUploader onFileUpload={handleFileUpload} isFileValid={isFileValid} />
 
         {/* Contenedor de visualización lado a lado */}
         {xmlContent && (
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Los dos paneles ahora tienen exactamente la misma estructura */}
             <div className="h-full">
               <XmlPreview
                 xmlContent={xmlContent}

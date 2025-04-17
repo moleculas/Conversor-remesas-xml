@@ -21,3 +21,8 @@ body {
     min-height: 500px;
   }
 }
+
+pre[class*="language-"] {
+  background: none !important;
+  background-color: transparent !important; /* Color de fondo de VSCode */
+}

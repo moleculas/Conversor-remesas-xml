@@ -1,20 +1,23 @@
-// src/components/XmlPreview.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import prettifyXml from 'prettify-xml';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-markup'; 
+import 'prismjs/themes/prism-funky.css'; 
 
 function XmlPreview({ xmlContent, onProcess, isProcessing, title }) {
     const [formattedXml, setFormattedXml] = useState('');
-
+    const codeRef = useRef(null);
+    
     useEffect(() => {
         if (xmlContent) {
             try {
-                // Formatear el XML pero sin colorearlo aquí
+                // Formatear el XML
                 const options = {
                     indent: 2,
                     newline: '\n',
                     maxWidth: 120
                 };
-
+                
                 const formatted = prettifyXml(xmlContent, options);
                 setFormattedXml(formatted);
             } catch (error) {
@@ -23,21 +26,35 @@ function XmlPreview({ xmlContent, onProcess, isProcessing, title }) {
             }
         }
     }, [xmlContent]);
-
-    // Renderizamos el XML con la sintaxis correcta sin usar dangerouslySetInnerHTML
+    
+    // Aplicar resaltado de sintaxis cuando cambie el XML formateado
+    useEffect(() => {
+        if (formattedXml && codeRef.current) {
+            Prism.highlightElement(codeRef.current);
+        }
+    }, [formattedXml]);
+    
     return (
         <div className="bg-background-card rounded-lg shadow-card p-6 flex flex-col h-full">
             <h2 className="text-xl font-semibold text-text-dark mb-4">
                 {title || "Vista previa del XML"}
             </h2>
-
+            
             {/* Contenedor con altura fija para garantizar que ambos paneles tengan la misma altura */}
-            <div className="h-[450px] bg-gray-900 p-4 rounded overflow-auto mb-4 font-mono text-xs">
-                <pre className="text-gray-200 whitespace-pre-wrap">
-                    {formattedXml}
-                </pre>
+            <div className="h-[450px] bg-black p-4 rounded overflow-auto mb-4 font-mono text-xs">
+                {xmlContent ? (
+                    <pre className="language-markup">
+                        <code ref={codeRef} className="language-markup">
+                            {formattedXml}
+                        </code>
+                    </pre>
+                ) : (
+                    <div className="text-gray-400 h-full flex items-center justify-center">
+                        No hay contenido XML para mostrar
+                    </div>
+                )}
             </div>
-
+            
             <button
                 type="button"
                 className="w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"

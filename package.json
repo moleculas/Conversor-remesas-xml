@@ -12,8 +12,10 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
     "prettify-xml": "^1.2.0",
+    "prismjs": "^1.30.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

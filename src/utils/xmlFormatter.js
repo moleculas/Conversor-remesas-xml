@@ -1,4 +1,3 @@
-// src/utils/xmlFormatter.js
 export function formatXML(xml) {
     // Asegurémonos de que el XML esté limpio
     xml = xml.trim();
