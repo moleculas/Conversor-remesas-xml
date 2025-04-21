@@ -36,10 +36,7 @@ function ProcessingResult({ data, title, numRemesa }) {
     const element = document.createElement("a");
     const file = new Blob([data.sample], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-
-    // Usar el número de remesa para el nombre del archivo descargado
     element.download = `Remesa_R${numRemesa}_procesado.xml`;
-
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -47,12 +44,10 @@ function ProcessingResult({ data, title, numRemesa }) {
 
   return (
     <div className="bg-background-card rounded-lg shadow-card p-6 flex flex-col h-full">
-      {/* Encabezado solo con título (eliminamos el mensaje de éxito) */}
       <h2 className="text-xl font-semibold text-text-dark mb-4">
         {title || "Resultado del procesamiento"}
       </h2>
 
-      {/* Contenedor del XML con altura fija */}
       <div className="h-[450px] bg-black p-4 rounded overflow-auto mb-4 font-mono text-xs">
         {data && data.sample ? (
           <pre className="language-markup">

@@ -6,7 +6,7 @@ export const useRemesa = () => useContext(RemesaContext);
 
 export const RemesaProvider = ({ children }) => {
     const [numRemesa, setNumRemesa] = useState(null);
-    const [diaRemesa, setDiaRemesa] = useState(null); 
+    const [diaRemesa, setDiaRemesa] = useState(null);
 
     const setRemesaFromFileName = (fileName) => {
         const regex = /^Remesa_R(\d+)\.xml$/;
@@ -25,12 +25,12 @@ export const RemesaProvider = ({ children }) => {
     };
 
     return (
-        <RemesaContext.Provider value={{ 
-            numRemesa, 
-            setNumRemesa, 
+        <RemesaContext.Provider value={{
+            numRemesa,
+            setNumRemesa,
             setRemesaFromFileName,
-            diaRemesa, 
-            setDiaRemesa 
+            diaRemesa,
+            setDiaRemesa
         }}>
             {children}
         </RemesaContext.Provider>

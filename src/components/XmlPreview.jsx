@@ -11,7 +11,6 @@ function XmlPreview({ xmlContent, onProcess, isProcessing, title, disableProcess
     useEffect(() => {
         if (xmlContent) {
             try {
-                // Formatear el XML
                 const options = {
                     indent: 2,
                     newline: '\n',
@@ -27,7 +26,6 @@ function XmlPreview({ xmlContent, onProcess, isProcessing, title, disableProcess
         }
     }, [xmlContent]);
     
-    // Aplicar resaltado de sintaxis cuando cambie el XML formateado
     useEffect(() => {
         if (formattedXml && codeRef.current) {
             Prism.highlightElement(codeRef.current);
@@ -40,7 +38,6 @@ function XmlPreview({ xmlContent, onProcess, isProcessing, title, disableProcess
                 {title || "Vista previa del XML"}
             </h2>
             
-            {/* Contenedor con altura fija para garantizar que ambos paneles tengan la misma altura */}
             <div className="h-[450px] bg-black p-4 rounded overflow-auto mb-4 font-mono text-xs">
                 {xmlContent ? (
                     <pre className="language-markup">

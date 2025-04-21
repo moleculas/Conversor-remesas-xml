@@ -5,7 +5,6 @@ function FileUploader({ onFileUpload, isFileValid = true, disabled = false, rese
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Efecto para resetear el componente cuando cambia resetUploader
   useEffect(() => {
     if (resetUploader) {
       setFile(null);
@@ -78,7 +77,6 @@ function FileUploader({ onFileUpload, isFileValid = true, disabled = false, rese
   const fileName = file ? file.name : '';
   const fileSize = file ? formatFileSize(file.size) : '';
 
-  // Determinar si el componente está completamente deshabilitado
   const isCompletelyDisabled = disabled || isProcessed;
 
   return (
@@ -150,7 +148,6 @@ function FileUploader({ onFileUpload, isFileValid = true, disabled = false, rese
         )}
       </div>
 
-      {/* Mensaje sobre el formato esperado */}
       <div className="mt-2 text-sm text-center">
         El archivo debe tener el formato: <span className="font-mono bg-gray-100 p-1 rounded">Remesa_R000000.xml</span>
       </div>
