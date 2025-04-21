@@ -4,7 +4,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-markup'; 
 import 'prismjs/themes/prism-funky.css'; 
 
-function XmlPreview({ xmlContent, onProcess, isProcessing, title }) {
+function XmlPreview({ xmlContent, onProcess, isProcessing, title, disableProcessing = false }) {
     const [formattedXml, setFormattedXml] = useState('');
     const codeRef = useRef(null);
     
@@ -57,9 +57,13 @@ function XmlPreview({ xmlContent, onProcess, isProcessing, title }) {
             
             <button
                 type="button"
-                className="w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary transition-colors hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className={`w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+                    disableProcessing 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+                }`}
                 onClick={onProcess}
-                disabled={isProcessing}
+                disabled={isProcessing || disableProcessing}
             >
                 {isProcessing ? (
                     <>
@@ -69,6 +73,8 @@ function XmlPreview({ xmlContent, onProcess, isProcessing, title }) {
                         </svg>
                         Procesando...
                     </>
+                ) : disableProcessing ? (
+                    'XML ya procesado'
                 ) : (
                     'Procesar XML'
                 )}

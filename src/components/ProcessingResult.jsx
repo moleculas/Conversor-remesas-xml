@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import prettifyXml from 'prettify-xml';
 import Prism from 'prismjs';
-import 'prismjs/components/prism-markup'; 
-import 'prismjs/themes/prism-funky.css'; 
+import 'prismjs/components/prism-markup';
+import 'prismjs/themes/prism-funky.css';
 
-function ProcessingResult({ data, title }) {
+function ProcessingResult({ data, title, numRemesa }) {
   const [formattedXml, setFormattedXml] = useState('');
   const codeRef = useRef(null);
-  
+
   useEffect(() => {
     if (data && data.sample) {
       try {
@@ -16,7 +16,7 @@ function ProcessingResult({ data, title }) {
           newline: '\n',
           maxWidth: 120
         };
-        
+
         const formatted = prettifyXml(data.sample, options);
         setFormattedXml(formatted);
       } catch (error) {
@@ -25,30 +25,33 @@ function ProcessingResult({ data, title }) {
       }
     }
   }, [data]);
-  
+
   useEffect(() => {
     if (formattedXml && codeRef.current) {
       Prism.highlightElement(codeRef.current);
     }
   }, [formattedXml]);
-  
+
   const handleDownload = () => {
     const element = document.createElement("a");
     const file = new Blob([data.sample], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = "resultado-procesado.xml";
+
+    // Usar el número de remesa para el nombre del archivo descargado
+    element.download = `Remesa_R${numRemesa}_procesado.xml`;
+
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
   };
-  
+
   return (
     <div className="bg-background-card rounded-lg shadow-card p-6 flex flex-col h-full">
       {/* Encabezado solo con título (eliminamos el mensaje de éxito) */}
       <h2 className="text-xl font-semibold text-text-dark mb-4">
         {title || "Resultado del procesamiento"}
       </h2>
-      
+
       {/* Contenedor del XML con altura fija */}
       <div className="h-[450px] bg-black p-4 rounded overflow-auto mb-4 font-mono text-xs">
         {data && data.sample ? (
@@ -63,7 +66,7 @@ function ProcessingResult({ data, title }) {
           </div>
         )}
       </div>
-      
+
       {data && data.sample && (
         <button
           type="button"
