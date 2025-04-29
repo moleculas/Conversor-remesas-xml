@@ -333,7 +333,7 @@ const clientes = [
             MndtId: "000000000030",
             DtOfSgntr: "2009-10-31"
         },
-        Dbtr: "ESPIG BRICEÑO DANIEL"
+        Dbtr: "ESPIG BRICENO DANIEL"
     },
     {
         MndtRltdInf: {

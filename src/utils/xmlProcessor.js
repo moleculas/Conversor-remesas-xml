@@ -1,4 +1,5 @@
 import { CLIENTES } from '../constantes';
+import { normalizeClientName } from './xmlValidator';
 
 export const processRemesaXML = (xmlContent, numRemesa, diaRemesa) => {
   try {
@@ -9,7 +10,14 @@ export const processRemesaXML = (xmlContent, numRemesa, diaRemesa) => {
     );
 
     const currentYear = new Date().getFullYear();
-    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    // Extraer el mes del campo ReqdColltnDt (formato YYYY-MM-DD)    
+    const reqdColltnDtMatch = xmlContent.match(/<ReqdColltnDt>(\d{4}-\d{2}-\d{2})<\/ReqdColltnDt>/);
+    if (!reqdColltnDtMatch || !reqdColltnDtMatch[1]) {
+      throw new Error("No se ha encontrado el registro ReqdColltnDt necesario para configurar la fecha de las facturas");
+    }
+    // Extraer solo la parte del mes (posiciones 5 y 6 en el formato YYYY-MM-DD)
+    const collectionMonth = reqdColltnDtMatch[1].substring(5, 7);
+
     const newMsgId = `${currentYear}${numRemesa}`;
 
     // 1. Reemplazar el valor del tag MsgId en el XML
@@ -79,6 +87,7 @@ export const processRemesaXML = (xmlContent, numRemesa, diaRemesa) => {
       let modifiedBlock = originalBlock;
       const formattedIndex = String(index).padStart(3, '0');
 
+      // Modificar PmtId con el formato numRemesa-formattedIndex
       modifiedBlock = modifiedBlock.replace(
         /<PmtId>[\s\S]*?<\/PmtId>/,
         (pmtIdMatch) => {
@@ -93,19 +102,34 @@ export const processRemesaXML = (xmlContent, numRemesa, diaRemesa) => {
         }
       );
 
+      // Extraer y normalizar el nombre del deudor
       const dbtrNmRegex = /<Dbtr>[\s\S]*?<Nm>(.*?)<\/Nm>[\s\S]*?<\/Dbtr>/;
       const dbtrNmMatch = modifiedBlock.match(dbtrNmRegex);
 
       if (dbtrNmMatch && dbtrNmMatch[1]) {
         const deudorNombre = dbtrNmMatch[1].trim();
-        const deudorNormalizado = deudorNombre.replace(/,/g, '').trim();
+        const deudorNormalizado = normalizeClientName(deudorNombre);
 
+        // Buscar cliente en la lista con la función de normalización importada
         const clienteEncontrado = CLIENTES.find(cliente => {
-          const nombreClienteNormalizado = cliente.Dbtr.replace(/,/g, '').trim();
+          const nombreClienteNormalizado = normalizeClientName(cliente.Dbtr);
           return nombreClienteNormalizado === deudorNormalizado;
         });
 
         if (clienteEncontrado) {
+          // Reemplazar el nombre del cliente con el nombre exacto de la constante
+          modifiedBlock = modifiedBlock.replace(
+            /<Dbtr>[\s\S]*?<Nm>.*?<\/Nm>[\s\S]*?<\/Dbtr>/,
+            (dbtrMatch) => {
+              // Preservar la estructura completa del bloque Dbtr reemplazando solo el Nm
+              return dbtrMatch.replace(
+                /<Nm>.*?<\/Nm>/,
+                `<Nm>${clienteEncontrado.Dbtr}</Nm>`
+              );
+            }
+          );
+
+          // Reemplazar MndtRltdInf con la información del cliente encontrado
           modifiedBlock = modifiedBlock.replace(
             /<MndtRltdInf>[\s\S]*?<\/MndtRltdInf>/,
             (mndtMatch) => {
@@ -116,20 +140,35 @@ export const processRemesaXML = (xmlContent, numRemesa, diaRemesa) => {
               return `${indent}<MndtRltdInf>\n` +
                 `${indentInner}<MndtId>${clienteEncontrado.MndtRltdInf.MndtId}</MndtId>\n` +
                 `${indentInner}<DtOfSgntr>${clienteEncontrado.MndtRltdInf.DtOfSgntr}</DtOfSgntr>\n` +
+                `${indentInner}<AmdmntInd>false</AmdmntInd>\n` +
                 `${indent}</MndtRltdInf>`;
             }
           );
         }
       }
 
+      // Modificar Ustrd con el texto y la fecha formateados
       modifiedBlock = modifiedBlock.replace(
         /<Ustrd>(.*?)<\/Ustrd>/,
         (ustrdMatch, originalContent) => {
-          const formattedDate = `${diaRemesa}/${currentMonth}/${currentYear}`;
+          const formattedDate = `${diaRemesa}/${collectionMonth}/${currentYear}`;
           return `<Ustrd>COMINVA,S.L. Factura: ${originalContent.trim()} de: ${formattedDate}</Ustrd>`;
         }
       );
 
+      // Añadir el tag Purp después de DbtrAcct
+      modifiedBlock = modifiedBlock.replace(
+        /(<\/DbtrAcct>)(\r?\n|\r)(\s*)/g,
+        (match, p1, p2, p3) => {
+          const indentation = p3 || '\t\t\t\t';
+          return p1 + p2 +
+            indentation + '<Purp>' + p2 +
+            indentation + '\t<Cd>CASH</Cd>' + p2 +
+            indentation + '</Purp>';
+        }
+      );
+
+      // Reemplazar el bloque original con el modificado
       processedXml = processedXml.replace(originalBlock, modifiedBlock);
       index++;
     }

@@ -1,5 +1,24 @@
 import { CLIENTES } from '../constantes';
 
+// Función para normalizar nombres de clientes - ahora exportada
+export const normalizeClientName = (name) => {
+  return name
+    .toUpperCase()                       // Convertir a mayúsculas
+    .replace(/Ñ/g, 'N')                  // Reemplazar Ñ por N
+    .replace(/[,\.;:]/g, ' ')            // Reemplazar puntuación por espacios
+    .replace(/[\`\'\´]/g, '')            // Eliminar comillas y acentos invertidos (O`FELAN → OFELAN)
+    .replace(/[ªº]/g, '')                // Eliminar superíndices (Mª → M)
+    .replace(/\s+/g, ' ')                // Reemplazar múltiples espacios por uno solo
+    .replace(/[ÁÀÄÂÃ]/g, 'A')            // Normalizar caracteres acentuados
+    .replace(/[ÉÈËÊ]/g, 'E')
+    .replace(/[ÍÌÏÎ]/g, 'I')
+    .replace(/[ÓÒÖÔ]/g, 'O')
+    .replace(/[ÚÙÜÛ]/g, 'U')
+    .replace(/\d+$/, '')                 // Eliminar números al final del string (como "294")
+    .trim();                             // Eliminar espacios al inicio y final
+};
+
+
 export const validateClientsInXml = (xmlContent) => {
   try {
     const result = {
@@ -13,10 +32,13 @@ export const validateClientsInXml = (xmlContent) => {
     while ((match = regex.exec(xmlContent)) !== null) {
       if (match[1]) {
         const clientName = match[1].trim();
-        const clientNameNormalized = clientName.replace(/,/g, '').trim();
-
+        
+        // Normalizar el nombre del cliente eliminando caracteres no alfanuméricos
+        // excepto los separadores como / y convirtiendo a mayúsculas
+        const clientNameNormalized = normalizeClientName(clientName);
+        
         const clientExists = CLIENTES.some(cliente => {
-          const nombreClienteNormalizado = cliente.Dbtr.replace(/,/g, '').trim();
+          const nombreClienteNormalizado = normalizeClientName(cliente.Dbtr);
           return nombreClienteNormalizado === clientNameNormalized;
         });
 
